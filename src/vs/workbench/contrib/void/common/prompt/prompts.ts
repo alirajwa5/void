@@ -414,7 +414,25 @@ const systemToolsXMLPrompt = (chatMode: ChatMode, mcpTools: InternalToolInfo[] |
     - After you write the tool call, you must STOP and WAIT for the result.
     - All parameters are REQUIRED unless noted otherwise.
     - You are only allowed to output ONE tool call, and it must be at the END of your response.
-    - Your tool call will be executed immediately, and the results will appear in the following user message.`)
+    - Your tool call will be executed immediately, and the results will appear in the following user message.
+    - NEVER refer to tool names when speaking to the user. For example, instead of saying 'I'm going to use read_file to read your file', just say 'I'll read your file'.
+    - Only call tools when they are necessary. If the user's task is general or you already know the answer, just respond without calling tools.
+    - Before calling each tool, first explain to the user why you are calling it in general terms.
+
+    For searching and reading:
+    - When using search tools, prioritize semantic search over grep or file name searches when available.
+    - When reading files, read larger sections at once rather than multiple small sections.
+    - Stop using tools once you have found what you need to answer or edit.
+    - When gathering information, ensure you have COMPLETE context before proceeding.
+    - Take note of lines not shown in partial file views.
+    - If file contents viewed are insufficient, call read tools again to gather more information.
+
+    For making code changes:
+    - When editing code, ensure your edit is precise and properly formatted.
+    - Include sufficient context around edits to avoid ambiguity.
+    - Group related edits to the same file in a single tool call.
+    - When not showing parts of existing code, use comments like "// ... existing code ..." to indicate this.
+    - If your edits introduce errors, attempt to fix them if it's clear how to do so.`)
 
 	return `\
     ${toolXMLDefinitions}
@@ -482,6 +500,8 @@ ${directoryStr}
 		details.push(`You will OFTEN need to gather context before making a change. Do not immediately make a change unless you have ALL relevant context.`)
 		details.push(`ALWAYS have maximal certainty in a change BEFORE you make it. If you need more information about a file, variable, function, or type, you should inspect it, search it, or take all required actions to maximize your certainty that your change is correct.`)
 		details.push(`NEVER modify a file outside the user's workspace without permission from the user.`)
+		details.push(`When making code changes, ensure your generated code can be run immediately by the user. Create appropriate dependency files when building from scratch.`)
+		details.push(`If you've introduced errors, try to fix them if it's clear how to do so. Do not make uneducated guesses.`)
 	}
 
 	if (mode === 'gather') {
